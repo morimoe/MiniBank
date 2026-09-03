@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniBank.DataAccess.Context;
 
@@ -10,9 +11,11 @@ using MiniBank.DataAccess.Context;
 namespace MiniBank.DataAccess.Migrations
 {
     [DbContext(typeof(MiniBankDbContext))]
-    partial class MiniBankDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260903102404_SeedInitialData")]
+    partial class SeedInitialData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
