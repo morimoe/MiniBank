@@ -3,7 +3,7 @@ using MiniBank.BusinessLogic.Ports;
 
 namespace MiniBank.BusinessLogic.Services
 {
-    public class AccountService
+    public class AccountService : IAccountService
     {
         private readonly IAccountRepository _accountRepository;
 
@@ -11,31 +11,25 @@ namespace MiniBank.BusinessLogic.Services
         {
             _accountRepository = accountRepository;
         }
-
-        public async Task<List<AccountDto>> GetUserAccountsAsync(int userId)
-        {
-            var accounts = await _accountRepository.GetByUserIdAsync(userId);
-            return accounts.Select(a => new AccountDto
-            {
-                Id = a.Id,
-                AccountNumber = a.AccountNumber,
-                Currency = a.Currency ?? "",
-                Balance = a.Balance
-            }).ToList();
-        }
-
-        public async Task<AccountDto?> GetByIdAsync(int id)
+        public async Task<AccountDto> GetByIdAsync(int id)
         {
             var account = await _accountRepository.GetByIdAsync(id);
-            if (account is null) return null;
-
             return new AccountDto
             {
-                Id = account.Id,
                 AccountNumber = account.AccountNumber,
-                Currency = account.Currency ?? "",
+                Currency = account.Currency,
                 Balance = account.Balance
             };
+        }
+        public async Task<IEnumerable<AccountDto>> GetByUserIdAsync(int userId)
+        {
+            var accounts = await _accountRepository.GetByUserIdAsync(userId);
+            return accounts.Select(account => new AccountDto
+            {
+                AccountNumber = account.AccountNumber,
+                Currency = account.Currency,
+                Balance = account.Balance
+            });
         }
     }
 }
