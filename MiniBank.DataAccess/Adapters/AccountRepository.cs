@@ -36,7 +36,6 @@ namespace MiniBank.DataAccess.Adapters
             }
             account.Balance = balance;
             await _context.SaveChangesAsync();
-
         }
     }
 }
