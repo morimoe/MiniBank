@@ -17,18 +17,19 @@ The project does not connect to real banking systems, does not process real mone
 ## Tech stack
 
 | Layer | Technology |
-|---|---|
-| Frontend | React + TypeScript |
+| --- | --- |
+| Frontend | React + TypeScript (planned, not yet implemented) |
 | Backend | C# + ASP.NET Core Web API |
 | Data access | Entity Framework Core |
-| Database | SQLite (local/dev) — can be switched to PostgreSQL |
+| Database | SQLite |
+| Auth | JWT (JSON Web Tokens), BCrypt password hashing |
 | API docs | Swagger / OpenAPI (Swashbuckle.AspNetCore) |
 | Version control | Git |
 
 ## Architecture
 
 ```
-React Frontend
+React Frontend (planned)
       ↓
   HTTP / JSON
       ↓
@@ -38,7 +39,7 @@ Business logic layer  (MiniBank.BusinessLogic)
       ↓
 Data access layer / EF Core (MiniBank.DataAccess)
       ↓
-SQLite / PostgreSQL
+SQLite
 ```
 
 ## Project structure
@@ -46,9 +47,9 @@ SQLite / PostgreSQL
 ```
 MiniBank/
 ├── MiniBank.API/              # ASP.NET Core Web API (controllers, Program.cs, Swagger config)
-├── MiniBank.BusinessLogic/    # Services, validation, transfer logic
+├── MiniBank.BusinessLogic/    # Services, DTOs, ports (interfaces), transfer logic
 ├── MiniBank.DataAccess/       # EF Core DbContext, entities, migrations
-├── MiniBank/                  # React + TypeScript frontend
+├── MiniBank/                  # Solution folder (frontend planned, not yet implemented)
 ├── MiniBank.sln
 └── README.md
 ```
@@ -56,7 +57,7 @@ MiniBank/
 ## Data model
 
 | Entity | Fields |
-|---|---|
+| --- | --- |
 | **User** | Id, Name, Email, PasswordHash |
 | **Account** | Id, UserId, AccountNumber, Currency, Balance |
 | **Transaction** | Id, FromAccountId, ToAccountId, Amount, Currency, CreatedAt, Status, Description |
@@ -66,99 +67,99 @@ A user can have one or more accounts; an account can participate in multiple tra
 ## API endpoints
 
 | Method | Endpoint | Description | Auth required |
-|---|---|---|---|
-| POST | `/api/auth/login` | Authenticate a user, returns a token | No |
+| --- | --- | --- | --- |
+| POST | `/api/auth/login` | Authenticate a user, returns a JWT token | No |
+| GET | `/api/users/me` | Get the authenticated user's profile | Yes |
 | GET | `/api/accounts` | List the authenticated user's accounts | Yes |
 | GET | `/api/accounts/{id}` | Get details of a specific account (owner only) | Yes |
-| GET | `/api/transactions` | Get transaction history for the user's account(s) | Yes |
-| POST | `/api/transactions/transfer` | Perform a transfer between accounts | Yes |
+| GET | `/api/transactions?accountId={id}` | Get transaction history for a specific account (owner only) | Yes |
+| POST | `/api/transactions/transfer` | Transfer money to another account by account number | Yes |
+
+`POST /api/transactions/transfer` body:
+
+```json
+{
+  "fromAccountId": 1,
+  "toAccountNumber": "MB-000002",
+  "amount": 100,
+  "description": "optional note"
+}
+```
 
 Full interactive documentation is available via Swagger UI once the API is running (see below).
 
 ## Prerequisites
 
 - [.NET SDK 8.0+](https://dotnet.microsoft.com/download)
-- [Node.js 18+](https://nodejs.org/) and npm
 - Git
 
 ## Getting started
 
 ### 1. Clone the repository
 
-```bash
+```
 git clone https://github.com/morimoe/MiniBank.git
 cd MiniBank
 ```
 
-### 2. Run the backend (MiniBank.API)
+### 2. Run the backend
 
-```bash
-cd MiniBank.API
-dotnet restore
-dotnet ef database update      # applies EF Core migrations, creates the SQLite DB
+```
+# Apply migrations (run from the DataAccess project, pointing at the API as startup project)
+cd MiniBank.DataAccess
+dotnet ef database update --startup-project ../MiniBank.API
+
+# Run the API
+cd ../MiniBank.API
 dotnet run
 ```
 
 By default the API will be available at:
-- `https://localhost:5001` (or the port shown in the console)
-- Swagger UI: `https://localhost:5001/swagger`
 
-> If `dotnet ef` is not recognized, install the tool once with:
-> `dotnet tool install --global dotnet-ef`
+- `https://localhost:7132` (or the port shown in the console)
+- Swagger UI: `https://localhost:7132/swagger`
 
-### 3. Run the frontend (MiniBank)
+> If `dotnet ef` is not recognized, install the tool once with: `dotnet tool install --global dotnet-ef`
 
-```bash
-cd MiniBank
-npm install
-npm run dev
-```
+### 3. Frontend
 
-The frontend will be available at `http://localhost:5173` (Vite default) or `http://localhost:3000`, depending on the setup. Make sure the API base URL in the frontend `.env` file points to the backend address above.
+The React + TypeScript frontend is planned but not yet implemented. Currently the API can be tested directly via Swagger UI.
 
 ## Test users
 
-(Replace with your actual seeded users once implemented.)
-
 | Email | Password | Notes |
-|---|---|---|
-| `alice@minibank.local` | `Test123!` | Has 1 account, sample transactions |
-| `bob@minibank.local` | `Test123!` | Has 1 account, sample transactions |
+| --- | --- | --- |
+| `TODO` | `TODO` | Has 2 accounts, sample transactions |
+| `TODO` | `TODO` | Has 1 account, sample transactions |
 
 ## Security notes
 
 - Only authenticated users can access account data.
 - A user cannot access another user's account, even by guessing/changing an account ID in the request.
-- Passwords are hashed, never stored in plain text.
-- All transfer input is validated (positive amount, sufficient balance, valid destination account).
+- Passwords are hashed (BCrypt), never stored in plain text.
+- All transfer input is validated (positive amount, sufficient balance, valid destination account, no self-transfer to the same account).
 
 ## Testing
 
-Minimum scenarios covered:
+Testing performed manually via Swagger UI. Scenarios covered:
 
 | Scenario | Expected result |
-|---|---|
-| Login with valid credentials | User is authenticated |
+| --- | --- |
+| Login with valid credentials | User is authenticated, receives a JWT token |
 | Login with invalid credentials | Authentication is rejected |
 | Valid transfer | Balances and transaction history are updated |
 | Transfer with insufficient balance | Transfer is rejected |
 | Zero / negative amount | Transfer is rejected |
-| Access another user's account | Access is rejected |
-| Access without authentication | Access is rejected |
-
-Run backend tests with:
-
-```bash
-dotnet test
-```
+| Access another user's account | Access is rejected (404, to avoid leaking existence) |
+| Access without authentication | Access is rejected (401) |
 
 ## Mandatory vs optional scope
 
-**Mandatory** (implemented): authentication, dashboard, account & balance view, transaction history, fictional transfer, input validation, basic authorization, Git history, README + docs, basic tests.
+**Implemented:** authentication (JWT), account & balance view, transaction history, money transfer with validation, ownership-based authorization.
 
-**Optional / if time allows**: transaction search & filtering, pagination, responsive UI polish, extra unit tests, simple audit log, minimal admin page, Docker, multi-currency support.
+**Not yet implemented:** React frontend (dashboard, login page, transfer UI), automated tests.
 
-**Out of scope**: real bank integrations, real transactions, real customer data, production systems, card processing, full banking system, fraud detection, MFA/CI-CD/cloud infra.
+**Out of scope:** real bank integrations, real transactions, real customer data, production systems, card processing, full banking system, fraud detection, MFA/CI-CD/cloud infra.
 
 ## License
 
