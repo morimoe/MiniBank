@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace MiniBank.DataAccess.Migrations
 {
     /// <inheritdoc />
@@ -59,6 +61,25 @@ namespace MiniBank.DataAccess.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Accounts",
+                columns: new[] { "Id", "AccountNumber", "Balance", "Currency", "UserId" },
+                values: new object[,]
+                {
+                    { 1, "MB-000001", 1000m, "MDL", 1 },
+                    { 2, "MB-000002", 500m, "MDL", 1 },
+                    { 3, "MB-000003", 500m, "MDL", 2 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Id", "Email", "Name", "PasswordHash" },
+                values: new object[,]
+                {
+                    { 1, "test1", "Test User1", "$2a$11$U62BKHFnsQZutN5WVy3XaukmPrGzOS4Xc.yudqZlU0XV9f19JYK92" },
+                    { 2, "test2", "Test User2", "$2a$11$Svw55ZLBpVfb29IOdOCKLeiLRAbbXcW0WgDT/4E21HPc0hS2e2y/K" }
                 });
         }
 

@@ -11,8 +11,8 @@ using MiniBank.DataAccess.Context;
 namespace MiniBank.DataAccess.Migrations
 {
     [DbContext(typeof(MiniBankDbContext))]
-    [Migration("20260903102404_SeedInitialData")]
-    partial class SeedInitialData
+    [Migration("20260909132322_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,6 +50,22 @@ namespace MiniBank.DataAccess.Migrations
                             Balance = 1000m,
                             Currency = "MDL",
                             UserId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AccountNumber = "MB-000002",
+                            Balance = 500m,
+                            Currency = "MDL",
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            AccountNumber = "MB-000003",
+                            Balance = 500m,
+                            Currency = "MDL",
+                            UserId = 2
                         });
                 });
 
@@ -108,9 +124,16 @@ namespace MiniBank.DataAccess.Migrations
                         new
                         {
                             Id = 1,
-                            Email = "test@minibank.com",
-                            Name = "Test User",
-                            PasswordHash = "..."
+                            Email = "test1",
+                            Name = "Test User1",
+                            PasswordHash = "$2a$11$U62BKHFnsQZutN5WVy3XaukmPrGzOS4Xc.yudqZlU0XV9f19JYK92"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Email = "test2",
+                            Name = "Test User2",
+                            PasswordHash = "$2a$11$Svw55ZLBpVfb29IOdOCKLeiLRAbbXcW0WgDT/4E21HPc0hS2e2y/K"
                         });
                 });
 #pragma warning restore 612, 618
