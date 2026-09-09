@@ -17,5 +17,10 @@ namespace MiniBank.DataAccess.Adapters
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             return user;
         }
+        public async Task<User?> GetByIdAsync(int id)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return user;
+        }
     }
 }
