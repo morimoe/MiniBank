@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MiniBank.BusinessLogic.DTO;
 using MiniBank.BusinessLogic.Services;
+using System.Security.Claims;
 
 namespace MiniBank.API.Controllers
 {
@@ -13,20 +15,22 @@ namespace MiniBank.API.Controllers
         {
             _accountService = accountService;
         }
-
+        
+        [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AccountDto>>> GetByUser([FromQuery] int userId)
+        public async Task<ActionResult<IEnumerable<AccountDto>>> GetByUser()
         {
-            var accounts = await _accountService.GetByUserIdAsync(userId);
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var accounts = await _accountService.GetByUserIdAsync(currentUserId);
             return Ok(accounts);
         }
-
+        
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<AccountDto>> GetById(int id)
         {
-            // TODO: проверить, что account.UserId == текущий пользователь, после реализации авторизации
-            // в принципе ещё добавить в других частях кода эту проверку
-            var account = await _accountService.GetByIdAsync(id);
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var account = await _accountService.GetByIdAsync(id, currentUserId);
             if (account is null) return NotFound();
             return Ok(account);
         }

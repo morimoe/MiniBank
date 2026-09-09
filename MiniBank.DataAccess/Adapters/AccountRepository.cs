@@ -12,13 +12,9 @@ namespace MiniBank.DataAccess.Adapters
         {
             _context = context;
         }
-        public async Task<Account> GetByIdAsync(int id)
+        public async Task<Account?> GetByIdAsync(int id)
         {
             var account = await _context.Accounts.FindAsync(id);
-            if (account == null)
-            {
-                throw new KeyNotFoundException($"Аккаунт с id {id} не найден.");
-            }
                 return account;
         }
 
@@ -31,11 +27,14 @@ namespace MiniBank.DataAccess.Adapters
         public async Task UpdateBalanceAsync(int id, decimal balance)
         {
             var account = await _context.Accounts.FindAsync(id);
-            if (account == null) {
-                throw new KeyNotFoundException($"Аккаунт с id {id} не найден.");
-            }
             account.Balance = balance;
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<Account> GetByAccountNumberAsync(string accountNumber)
+        {
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);
+            return account;
         }
     }
 }

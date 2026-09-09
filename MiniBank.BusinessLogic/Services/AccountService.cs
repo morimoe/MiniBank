@@ -11,9 +11,15 @@ namespace MiniBank.BusinessLogic.Services
         {
             _accountRepository = accountRepository;
         }
-        public async Task<AccountDto> GetByIdAsync(int id)
+        public async Task<AccountDto?> GetByIdAsync(int id, int currentUserId)
         {
             var account = await _accountRepository.GetByIdAsync(id);
+            if (account == null) { return null; }
+            if (account.UserId != currentUserId)
+            {
+                return null;
+            }
+                        
             return new AccountDto
             {
                 AccountNumber = account.AccountNumber,
