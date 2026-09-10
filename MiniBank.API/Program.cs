@@ -86,4 +86,23 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapControllers();
+
+app.MapWhen(ctx => !ctx.Request.Path.StartsWithSegments("/api") &&
+                    !ctx.Request.Path.StartsWithSegments("/swagger"),
+    spaApp =>
+    {
+        spaApp.UseSpa(spa =>
+        {
+            spa.Options.SourcePath = "ClientApp";
+
+            if (app.Environment.IsDevelopment())
+            {
+                spa.UseProxyToSpaDevelopmentServer("http://localhost:5173");
+            }
+        });
+    });
+
+app.Run();
+
 app.Run();
