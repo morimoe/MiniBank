@@ -14,10 +14,10 @@ namespace MiniBank.BusinessLogic.Services
             _transactionRepository = transactionRepository;
             _accountRepository = accountRepository;
         }
-        public async Task<TransferResultDto> TransferAsync(int currentUserId, int fromAccountId, string toAccountNumber, decimal amount, string description)
+        public async Task<TransferResultDto> TransferAsync(int currentUserId, string fromAccountNumber, string toAccountNumber, decimal amount, string description)
         {
-            var account = await _accountRepository.GetByIdAsync(fromAccountId);
-            if (account == null ) { return TransferResultDto.Fail("Account doesn't exist"); }
+            var account = await _accountRepository.GetByAccountNumberAsync(fromAccountNumber);
+            if (account == null) { return TransferResultDto.Fail("Account doesn't exist"); }
             if (currentUserId != account.UserId) { return TransferResultDto.Fail("Access denied"); }
 
             var toAccount = await _accountRepository.GetByAccountNumberAsync(toAccountNumber);
@@ -26,7 +26,7 @@ namespace MiniBank.BusinessLogic.Services
             if (amount <= 0) { return TransferResultDto.Fail("Amount wasn't entered correctly"); }
             if (account.Balance < amount) { return TransferResultDto.Fail("Insufficient funds"); }
 
-            if (fromAccountId == toAccount.Id) { return TransferResultDto.Fail("You can't transfer money to the same account"); }
+            if (account.Id == toAccount.Id) { return TransferResultDto.Fail("You can't transfer money to the same account"); }
 
             await _accountRepository.UpdateBalanceAsync(account.Id, account.Balance - amount);
             await _accountRepository.UpdateBalanceAsync(toAccount.Id, toAccount.Balance + amount);
@@ -55,6 +55,7 @@ namespace MiniBank.BusinessLogic.Services
                 FromAccountId = transaction.FromAccountId,
                 ToAccountId = transaction.ToAccountId,
                 Amount = transaction.Amount,
+                Currency = transaction.Currency,
                 Description = transaction.Description,
                 Status = transaction.Status,
                 CreatedAt = transaction.CreatedAt

@@ -23,4 +23,8 @@
     <ProjectReference Include="..\MiniBank.BusinessLogic\MiniBank.BusinessLogic.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

@@ -31,7 +31,7 @@ namespace MiniBank.API.Controllers
         public async Task<ActionResult> TransferAsync([FromBody] TransferRequestDto data)
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var transfer = await _transactionService.TransferAsync(currentUserId, data.FromAccountId, data.ToAccountNumber, data.Amount, data.Description);
+            var transfer = await _transactionService.TransferAsync(currentUserId, data.FromAccountNumber, data.ToAccountNumber, data.Amount, data.Description);
             if (transfer.Success == false) { return BadRequest(transfer); }
             return Ok(transfer);
         }
