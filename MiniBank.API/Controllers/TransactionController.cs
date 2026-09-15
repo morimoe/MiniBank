@@ -19,10 +19,10 @@ namespace MiniBank.API.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TransactionDto>>> TransactionHistory([FromQuery] int accountId)
+        public async Task<ActionResult<IEnumerable<TransactionDto>>> TransactionHistory([FromQuery] string accountNumber)
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var transactions = await _transactionService.TransactionHistoryAsync(accountId, currentUserId);
+            var transactions = await _transactionService.TransactionHistoryAsync(accountNumber, currentUserId);
             return Ok(transactions);
         }
 

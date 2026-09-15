@@ -43,23 +43,33 @@ namespace MiniBank.BusinessLogic.Services
             return TransferResultDto.Pass();
         }
 
-        public async Task<IEnumerable<TransactionDto>> TransactionHistoryAsync(int accountId, int currentUserId)
+        public async Task<IEnumerable<TransactionDto>> TransactionHistoryAsync(string accountNumber, int currentUserId)
         {
-            var account = await _accountRepository.GetByIdAsync(accountId);
-            if (account == null ) { return Enumerable.Empty<TransactionDto>(); }
+            var account = await _accountRepository.GetByAccountNumberAsync(accountNumber);
+            if (account == null) { return Enumerable.Empty<TransactionDto>(); }
             if (account.UserId != currentUserId) { return Enumerable.Empty<TransactionDto>(); }
 
-            var transactions = await _transactionRepository.GetByAccountIdAsync(accountId);
-            return transactions.Select(transaction => new TransactionDto
+            var transactions = await _transactionRepository.GetByAccountIdAsync(account.Id);
+
+            var result = new List<TransactionDto>();
+            foreach (var transaction in transactions)
             {
-                FromAccountId = transaction.FromAccountId,
-                ToAccountId = transaction.ToAccountId,
-                Amount = transaction.Amount,
-                Currency = transaction.Currency,
-                Description = transaction.Description,
-                Status = transaction.Status,
-                CreatedAt = transaction.CreatedAt
-            });
+                var fromAccount = await _accountRepository.GetByIdAsync(transaction.FromAccountId);
+                var toAccount = await _accountRepository.GetByIdAsync(transaction.ToAccountId);
+
+                result.Add(new TransactionDto
+                {
+                    FromAccountNumber = fromAccount?.AccountNumber ?? "",
+                    ToAccountNumber = toAccount?.AccountNumber ?? "",
+                    Amount = transaction.Amount,
+                    Currency = transaction.Currency,
+                    Description = transaction.Description,
+                    Status = transaction.Status,
+                    CreatedAt = transaction.CreatedAt
+                });
+            }
+
+            return result;
         }
     }
 }
