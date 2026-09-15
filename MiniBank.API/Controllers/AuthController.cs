@@ -17,7 +17,7 @@ namespace MiniBank.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto data)
         {
-            var token = await _authService.LoginAsync(data.Email, data.Password);
+            var token = await _authService.LoginAsync(data.Identifier, data.Password);
             if (token.Success == false) { return BadRequest(token); }
             return Ok(token);
         }

@@ -5,6 +5,6 @@ namespace MiniBank.BusinessLogic.Services
 {
     public interface IAuthService
     {
-        Task<LoginResultDto> LoginAsync(string username, string password);
+        Task<LoginResultDto> LoginAsync(string identifier, string password);
     }
 }

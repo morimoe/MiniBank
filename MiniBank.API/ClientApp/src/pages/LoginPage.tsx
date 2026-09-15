@@ -7,7 +7,7 @@ function LoginPage() {
   const auth = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   
@@ -16,14 +16,14 @@ function LoginPage() {
     setError("");
 
     try {
-    const data = await loginApi({ email, password });
+    const data = await loginApi({ identifier, password });
     if (data.token) {
       auth?.login(data.token);
       navigate("/dashboard");
     }
     console.log(data);
     } catch (err) {
-        setError("Не удалось войти. Проверьте email и пароль.");
+        setError("Не удалось войти. Проверьте username/email и пароль.");
     }
   }
 
@@ -33,10 +33,10 @@ function LoginPage() {
       <p>Добро пожаловать в банк-симулятор</p>
       <form onSubmit={handleLogin}>
         <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Введи email"
+          type="text"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          placeholder="Введи username/email"
         />
         <input
           type="password"

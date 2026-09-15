@@ -18,19 +18,20 @@ namespace MiniBank.BusinessLogic.Services
             _userRepository = userRepository;
             _jwtSettings = jwtSettings;
         }
-        public async Task<LoginResultDto> LoginAsync(string email, string password)
+        public async Task<LoginResultDto> LoginAsync(string identifier, string password)
         {
-            var user = await _userRepository.GetByEmailAsync(email);
+            var user = await _userRepository.GetByEmailAsync(identifier)
+                ?? await _userRepository.GetByUsernameAsync(identifier);
 
             if (user == null) 
             { 
-                return LoginResultDto.Fail("Invalid email or password");  
+            return LoginResultDto.Fail("Invalid username/email or password");  
             }
                 
             bool passwordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
             if (!passwordValid)
             {
-                return LoginResultDto.Fail("Invalid email or password");
+                return LoginResultDto.Fail("Invalid username/email or password");
             }
 
             var claims = new List<Claim>

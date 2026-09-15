@@ -13,8 +13,15 @@ namespace MiniBank.DataAccess.Adapters
             _context = context;
         }
         public async Task<User?> GetByEmailAsync(string email)
-        { 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        {
+            var normalizedEmail = email.ToLower();
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+            return user;
+        }
+        public async Task<User?> GetByUsernameAsync(string username)
+        {
+            var normalizedUsername = username.ToLower();
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Name.ToLower() == normalizedUsername);
             return user;
         }
         public async Task<User?> GetByIdAsync(int id)
