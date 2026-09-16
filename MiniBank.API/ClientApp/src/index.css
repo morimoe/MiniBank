@@ -374,3 +374,82 @@ body {
 .transfer-submit:hover {
   background: var(--color-mint-soft);
 }
+
+@media (max-width: 768px) {
+
+  .auth-page,
+  .dashboard-page,
+  .transfer-page {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .dashboard-title,
+  .transfer-title {
+    font-size: 1.6rem;
+  }
+
+  .auth-hero h1 {
+    font-size: 2rem;
+  }
+
+  .auth-hero p {
+    font-size: 1.05rem;
+  }
+
+  .auth-panel {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .auth-hero {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+    gap: 1.25rem;
+  }
+
+  .dashboard-topbar {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .accounts-panel {
+    max-height: 320px;
+  }
+
+  .transfer-panel {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "select"
+      "amount"
+      "to"
+      "desc";
+    max-width: 100%;
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 380px) {
+
+  .auth-panel,
+  .transfer-panel {
+    padding: 1rem;
+  }
+
+  .dashboard-title,
+  .transfer-title {
+    font-size: 1.4rem;
+  }
+
+  .transfer-submit,
+  .auth-submit {
+    width: 100%;
+    padding: 0.75rem 1rem;
+  }
+}
