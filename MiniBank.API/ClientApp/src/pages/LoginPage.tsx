@@ -23,7 +23,7 @@ function LoginPage() {
     }
     console.log(data);
     } catch (err) {
-        setError("Не удалось войти. Проверьте username/email и пароль.");
+      setError(err instanceof Error ? err.message : "Не удалось войти.");
     }
   }
 
