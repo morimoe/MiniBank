@@ -167,8 +167,25 @@ Open the app at:
 
 | Email | Username | Password | Notes |
 | --- | --- | --- | --- |
-| `TODO` | `TODO` | `TODO` | Has 2 accounts, sample transactions |
-| `TODO` | `TODO` | `TODO` | Has 1 account, sample transactions |
+| `test1@minibank.com` | `Test User1` | `1234` | Has 2 accounts (`MB-000001`, `MB-000002`), sample transactions |
+| `test2@minibank.com` | `Test User2` | `1234` | Has 1 account (`MB-000003`), sample transactions |
+
+## Generating password hashes for seed data
+
+Passwords in the database are hashed with BCrypt and can never be reversed back into plain text — the hash stored via `HasData(...)` in `MiniBankDbContext.OnModelCreating` only allows *verifying* a password at login time, not recovering the original value from it.
+
+To generate a new hash (for example, to add another seed user), temporarily add this line near the top of `Program.cs`, run the project once to print the hash to the console, then remove the line:
+
+```csharp
+Console.WriteLine(BCrypt.Net.BCrypt.HashPassword("your-password-here"));
+```
+
+Copy the printed hash into the `PasswordHash` field of the new `User` entry in `MiniBankDbContext.OnModelCreating`, then create and apply a new EF Core migration as usual:
+
+```
+dotnet ef migrations add AddNewSeedUser --startup-project ../MiniBank.API
+dotnet ef database update --startup-project ../MiniBank.API
+```
 
 ## Security notes
 
@@ -196,9 +213,18 @@ Testing performed manually via the frontend and Swagger UI. Scenarios covered:
 
 ## Mandatory vs optional scope
 
-**Implemented:** React + TypeScript frontend (login, dashboard, transfer), JWT authentication with email/username login, account & balance view, transaction history grouped by account, money transfer with validation, ownership-based authorization, protected routes on the frontend.
+**Implemented (mandatory):** React + TypeScript frontend (login, dashboard, transfer), JWT authentication with email/username login, account & balance view, transaction history grouped by account, money transfer with validation, ownership-based authorization, protected routes on the frontend.
 
-**Not yet implemented:** automated tests, dedicated transaction search/filtering page.
+**Possible future improvements (optional, from the assignment's extension list):**
+
+- Transaction search and filtering (by date, amount, status, counterparty)
+- Pagination for transaction history
+- Further responsive UI polish for smaller screens
+- Automated unit tests (currently testing is manual only, see above)
+- Simple audit log (tracking who did what and when)
+- Minimal administration page
+- Docker setup for easier deployment
+- Support for multiple currencies (currently all accounts use MDL)
 
 **Out of scope:** real bank integrations, real transactions, real customer data, production systems, card processing, full banking system, fraud detection, MFA/CI-CD/cloud infra.
 
