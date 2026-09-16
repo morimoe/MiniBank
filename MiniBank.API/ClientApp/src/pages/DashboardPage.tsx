@@ -6,15 +6,20 @@ import { getTransactionHistory } from "../functions/transactionApi";
 import type { Account } from "../types/account";
 import type { User } from "../types/user";
 import type { Transaction } from "../types/transaction";
-import Header from "../components/Header";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function DashboardPage() {
     const auth = useContext(AuthContext);
+    const navigate = useNavigate();
+    function handleLogout() {
+    auth?.logout();
+    navigate("/login");
+    }
     const [user, setUser] = useState<User | null>(null);
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [error, setError] = useState("");
     const [transactionsByAccount, setTransactionsByAccount] = useState<Record<string, Transaction[]>>({});
+    const [activeAccount, setActiveAccount] = useState<string | null>(null);
 
     useEffect(() => {
         if (!auth?.token) return;
@@ -23,8 +28,11 @@ function DashboardPage() {
     .then((data) => setUser(data))
     .catch(() => setError("Не удалось загрузить пользователя"));
 
-    getAccounts(auth?.token)
-    .then((data) => setAccounts(data))
+    getAccounts(auth.token)
+    .then((data) => {
+        setAccounts(data);
+        if (data.length > 0) setActiveAccount(data[0].accountNumber);
+    })
     .catch(() => setError("Не удалось загрузить счета"));
 }, [auth?.token]);
 
@@ -53,34 +61,47 @@ function DashboardPage() {
     }, [auth?.token, accounts]);
 
     return (
-        <div>
-            <Header />
-            <h1>Dashboard</h1>
-            {user && <p>Привет, {user.name}</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
+    <div className="dashboard-page">
+        <div className="dashboard-topbar">
+        <div className="dashboard-topbar-actions">
+            <button className="dashboard-logout" onClick={handleLogout}>‹ Выйти из аккаунта</button>
+            <button className="dashboard-transfer" onClick={() => navigate("/transfer")}>Совершить транзакцию ›</button>
+        </div>
+        {user && <span className="dashboard-greeting">Привет, {user.name}</span>}
+        </div>
+        <h1 className="dashboard-title">Панель управления</h1>
+        {error && <p className="auth-error">{error}</p>}
 
-            <h2>Счета</h2>
+        <div className="dashboard-grid">
+        <div className="dashboard-panel accounts-panel">
             {accounts.map((account) => (
-                <div key={account.accountNumber}>
-                    <p>Счёт: {account.accountNumber}</p>
-                    <p>Баланс: {account.balance} {account.currency}</p>
-                </div>
-            ))}
-            
-            <Link to="/transfer">Перевести деньги</Link>
-
-            <h2>Последние транзакции</h2>
-            {accounts.map((account) => (
-            <div key={account.accountNumber}>
-                <h3>Счёт {account.accountNumber}</h3>
-                {(transactionsByAccount[account.accountNumber] ?? []).map((t, index) => (
-                <p key={index}>
-                    {new Date(t.createdAt).toLocaleString()}: {t.fromAccountNumber} → {t.toAccountNumber}, {t.amount} {t.currency} — {t.status}
-                </p>
-                ))}
+            <div
+                key={account.accountNumber}
+                className={`account-card ${activeAccount === account.accountNumber ? "is-active" : ""}`}
+                onMouseEnter={() => setActiveAccount(account.accountNumber)}
+            >
+                <p className="account-number">Счёт: {account.accountNumber}</p>
+                <p>Баланс: {account.balance} {account.currency}</p>
             </div>
             ))}
         </div>
+
+        <div className="dashboard-panel">
+            {activeAccount && (transactionsByAccount[activeAccount] ?? []).length === 0 && (
+            <p className="transactions-empty">Транзакций пока нет</p>
+            )}
+            {activeAccount &&
+            (transactionsByAccount[activeAccount] ?? []).map((t, index) => (
+                <div className="transaction-card" key={index}>
+                <p>{t.fromAccountNumber} → {t.toAccountNumber}</p>
+                <p className="amount">{t.amount} {t.currency}</p>
+                <p>{new Date(t.createdAt).toLocaleString()}, {t.status}</p>
+                <p>{t.description}</p>
+                </div>
+            ))}
+        </div>
+        </div>
+    </div>
     );
 }
 

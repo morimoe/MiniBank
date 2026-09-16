@@ -4,10 +4,11 @@ import { getAccounts } from "../functions/accountApi";
 import { transferMoney } from "../functions/transactionApi";
 import type { Account } from "../types/account";
 import type { TransferRequest } from "../types/transfer"; 
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function TransferPage() {
   const auth = useContext(AuthContext);
+  const navigate = useNavigate();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [fromAccountNumber, setFromAccountNumber] = useState("");
   const [toAccountNumber, setToAccountNumber] = useState("");
@@ -49,14 +50,21 @@ function TransferPage() {
   }
 
   return (
-    <div>
-      <h1>Перевод денег</h1>
-      <form onSubmit={handleTransfer}>
+  <div className="transfer-page">
+    <button className="transfer-back" onClick={() => navigate("/dashboard")}>
+      ‹ Вернуться на панель управления
+    </button>
+
+    <h1 className="transfer-title">Перевод денег</h1>
+
+    <form onSubmit={handleTransfer}>
+      <div className="transfer-panel">
         <select
+          className="transfer-field field-select"
           value={fromAccountNumber}
           onChange={(e) => setFromAccountNumber(e.target.value)}
         >
-          <option value="">Выберите счёт</option>
+          <option value="">Выбрать счёт</option>
           {accounts.map((account) => (
             <option key={account.accountNumber} value={account.accountNumber}>
               {account.accountNumber} ({account.balance} {account.currency})
@@ -65,33 +73,36 @@ function TransferPage() {
         </select>
 
         <input
-          type="text"
-          value={toAccountNumber}
-          onChange={(e) => setToAccountNumber(e.target.value)}
-          placeholder="Номер счёта получателя"
-        />
-        <input
+          className="transfer-field field-amount"
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="Сумма"
         />
+
         <input
+          className="transfer-field field-to"
           type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Описание (необязательно)"
+          value={toAccountNumber}
+          onChange={(e) => setToAccountNumber(e.target.value)}
+          placeholder="Введите номер аккаунта получателя"
         />
 
-        <button type="submit">Перевести</button>
-      </form>
+        <textarea
+          className="transfer-field field-desc"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Описание (необяз.)"
+        />
+      </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && <p style={{ color: "green" }}>Перевод выполнен успешно</p>}
+      <button className="transfer-submit" type="submit">Перевести</button>
+    </form>
 
-      <Link to="/dashboard">Вернуться обратно на панель управления</Link>
-    </div>
-  );
+    {error && <p className="auth-error">{error}</p>}
+    {success && <p style={{ color: "#3D7A5D", textAlign: "center", fontWeight: 700 }}>Перевод выполнен успешно</p>}
+  </div>
+);
 }
 
 export default TransferPage;

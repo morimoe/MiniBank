@@ -28,27 +28,34 @@ function LoginPage() {
   }
 
   return (
-    <div>
+  <div className="auth-page">
+    <div className="auth-hero">
       <h1>MiniBank</h1>
       <p>Добро пожаловать в банк-симулятор</p>
-      <form onSubmit={handleLogin}>
+    </div>
+
+    <form className="auth-form" onSubmit={handleLogin}>
+      <div className="auth-panel">
         <input
+          className="auth-field"
           type="text"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          placeholder="Введи username/email"
+          placeholder="Введите имя или email"
         />
         <input
+          className="auth-field"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Введи password"
+          placeholder="Введите пароль"
         />
-        <button type="submit">Войти</button>
-      </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </div>
-  );
+      </div>
+      <button className="auth-submit" type="submit">Войти</button>
+      {error && <p className="auth-error">{error}</p>}
+    </form>
+  </div>
+);
 }
 
 export default LoginPage;
