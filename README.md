@@ -22,7 +22,7 @@ The project does not connect to real banking systems, does not process real mone
 | Backend | C# + ASP.NET Core Web API |
 | Data access | Entity Framework Core |
 | Database | SQLite |
-| Auth | JWT (JSON Web Tokens), BCrypt password hashing |
+| Auth | JWT (JSON Web Tokens) stored in an httpOnly cookie, BCrypt password hashing |
 | API docs | Swagger / OpenAPI (Swashbuckle.AspNetCore) |
 | Version control | Git |
 
@@ -56,7 +56,7 @@ MiniBank/
 │   │   └── src/
 │   │       ├── pages/          # LoginPage, DashboardPage, TransferPage
 │   │       ├── components/     # Header, ProtectedRoute, AnonymousRoute
-│   │       ├── context/        # AuthContext (JWT token, login/logout)
+│   │       ├── context/        # AuthContext (session state, login/logout)
 │   │       ├── functions/      # API calls (authApi, accountApi, userApi, transactionApi)
 │   │       └── types/          # Shared TypeScript interfaces (mirroring backend DTOs)
 │   └── Program.cs
@@ -76,11 +76,23 @@ MiniBank/
 
 A user can have one or more accounts; an account can participate in multiple transactions.
 
+## Authentication
+
+Authentication uses a JWT stored in an **httpOnly cookie**, not in `localStorage` and not returned in the response body:
+
+- `POST /api/auth/login` verifies the credentials and, on success, sets the JWT as an httpOnly, secure cookie (`SameSite=Lax`). The frontend never reads or stores the token itself — it is invisible to JavaScript (`document.cookie` does not expose it).
+- Every subsequent request from the frontend is made with `credentials: "include"`, so the browser automatically attaches the cookie; no `Authorization` header is used.
+- The frontend calls `GET /api/auth/session` on load to check whether the current cookie represents an active session (`{ active: true | false }`), and reacts accordingly (e.g. redirecting to `/login`).
+- `POST /api/auth/logout` clears the cookie server-side.
+- Protection is enforced on the **backend**: a middleware validates the JWT from the cookie on every request to a protected endpoint and returns `401 Unauthorized` if it is missing or invalid — the frontend's route guards (`ProtectedRoute`) only improve the UX (avoiding a flash of protected content) and are not the actual security boundary.
+
 ## API endpoints
 
 | Method | Endpoint | Description | Auth required |
 | --- | --- | --- | --- |
-| POST | `/api/auth/login` | Authenticate with email **or** username + password, returns a JWT token | No |
+| POST | `/api/auth/login` | Authenticate with email **or** username + password; sets the JWT as an httpOnly cookie | No |
+| GET | `/api/auth/session` | Check whether the current cookie represents an active session, returns `{ active: true \| false }` | No |
+| POST | `/api/auth/logout` | Clear the authentication cookie | Yes |
 | GET | `/api/user/me` | Get the authenticated user's profile | Yes |
 | GET | `/api/account` | List the authenticated user's accounts | Yes |
 | GET | `/api/account/{id}` | Get details of a specific account (owner only) | Yes |
@@ -96,7 +108,7 @@ A user can have one or more accounts; an account can participate in multiple tra
 }
 ```
 
-`identifier` accepts either the user's email or their username (name).
+`identifier` accepts either the user's email or their username (name). On success, the JWT is set as an httpOnly cookie — it is not included in the JSON response body.
 
 `POST /api/transaction/transfer` body:
 
@@ -189,7 +201,8 @@ dotnet ef database update --startup-project ../MiniBank.API
 
 ## Security notes
 
-- Only authenticated users can access account data (JWT required via the `Authorization: Bearer <token>` header).
+- Only authenticated users can access account data. Authentication is verified on the **backend**, via a middleware that reads the JWT from an httpOnly cookie and rejects the request with `401 Unauthorized` if the cookie is missing or the token is invalid — this holds even if the request bypasses the frontend entirely (e.g. a direct request from Postman or the browser address bar).
+- The JWT is never exposed to frontend JavaScript: it is stored in an httpOnly, secure cookie rather than `localStorage`, which protects it from theft via XSS. The frontend only ever learns whether a session is active (via `GET /api/auth/session`), never the token itself.
 - A user cannot access another user's account, even by guessing/changing an account number or account id in the request — ownership is checked against the authenticated user's id from the token, not from client-supplied input.
 - Passwords are hashed with BCrypt, never stored in plain text.
 - Login accepts email or username but never reveals which one (or whether the account exists at all) on failure — the same generic error message is returned either way.
@@ -201,7 +214,7 @@ Testing performed manually via the frontend and Swagger UI. Scenarios covered:
 
 | Scenario | Expected result |
 | --- | --- |
-| Login with valid credentials (email or username) | User is authenticated, receives a JWT token |
+| Login with valid credentials (email or username) | User is authenticated, httpOnly session cookie is set |
 | Login with invalid credentials | Authentication is rejected |
 | Valid transfer | Balances and transaction history are updated |
 | Transfer with insufficient balance | Transfer is rejected |
@@ -210,10 +223,11 @@ Testing performed manually via the frontend and Swagger UI. Scenarios covered:
 | Access another user's account | Access is rejected |
 | Access without authentication | Access is rejected (401), and the frontend redirects to the login page |
 | Direct URL access to a protected page while logged out | Redirected to `/login` |
+| Direct request to a protected API endpoint without a session cookie (bypassing the frontend, e.g. via the browser address bar or Postman) | Backend returns `401 Unauthorized` regardless of frontend logic |
 
 ## Mandatory vs optional scope
 
-**Implemented (mandatory):** React + TypeScript frontend (login, dashboard, transfer), JWT authentication with email/username login, account & balance view, transaction history grouped by account, money transfer with validation, ownership-based authorization, protected routes on the frontend.
+**Implemented (mandatory):** React + TypeScript frontend (login, dashboard, transfer), authentication with email/username login using a JWT in an httpOnly cookie, account & balance view, transaction history grouped by account, money transfer with validation, ownership-based authorization, backend-enforced route protection with frontend route guards for UX.
 
 **Possible future improvements (optional, from the assignment's extension list):**
 
