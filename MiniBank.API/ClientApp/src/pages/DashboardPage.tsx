@@ -9,9 +9,7 @@ import type { Transaction } from "../types/transaction";
 import { useNavigate } from "react-router-dom";
 
 function DashboardPage() {
-    console.log("DASHBOARD RENDER START");
     const auth = useContext(AuthContext);
-    console.log("AUTH STATE:", auth);
     const navigate = useNavigate();
 
     async function handleLogout() {
