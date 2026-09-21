@@ -6,7 +6,9 @@ import type { ReactNode } from "react";
 function AnonymousRoute({ children }: { children: ReactNode }) {
     const auth = useContext(AuthContext);
 
-    if (auth?.token) {
+    if (auth?.loading) return null;
+
+    if (auth?.isAuthenticated) {
         return <Navigate to="/dashboard" replace />;
     }
 

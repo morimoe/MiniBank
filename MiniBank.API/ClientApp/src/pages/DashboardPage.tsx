@@ -9,12 +9,16 @@ import type { Transaction } from "../types/transaction";
 import { useNavigate } from "react-router-dom";
 
 function DashboardPage() {
+    console.log("DASHBOARD RENDER START");
     const auth = useContext(AuthContext);
+    console.log("AUTH STATE:", auth);
     const navigate = useNavigate();
-    function handleLogout() {
-    auth?.logout();
-    navigate("/login");
+
+    async function handleLogout() {
+        await auth?.logout();
+        navigate("/login");
     }
+
     const [user, setUser] = useState<User | null>(null);
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [error, setError] = useState("");
@@ -22,43 +26,43 @@ function DashboardPage() {
     const [activeAccount, setActiveAccount] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!auth?.token) return;
+        if (!auth?.isAuthenticated) return;
 
-    getCurrentUser(auth.token)
-    .then((data) => setUser(data))
-    .catch(() => setError("Не удалось загрузить пользователя"));
+        getCurrentUser()
+            .then((data) => setUser(data))
+            .catch(() => setError("Не удалось загрузить пользователя"));
 
-    getAccounts(auth.token)
-    .then((data) => {
-        setAccounts(data);
-        if (data.length > 0) setActiveAccount(data[0].accountNumber);
-    })
-    .catch(() => setError("Не удалось загрузить счета"));
-}, [auth?.token]);
+        getAccounts()
+            .then((data) => {
+                setAccounts(data);
+                if (data.length > 0) setActiveAccount(data[0].accountNumber);
+            })
+            .catch(() => setError("Не удалось загрузить счета"));
+    }, [auth?.isAuthenticated]);
 
     useEffect(() => {
-    if (!auth?.token || accounts.length === 0) return;
+        if (!auth?.isAuthenticated || accounts.length === 0) return;
 
-    Promise.all(
-        accounts.map((account) =>
-        getTransactionHistory(account.accountNumber, auth.token!)
-        .then((data) => ({
-            accountNumber: account.accountNumber,
-            transactions: data
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 5),
-        }))
+        Promise.all(
+            accounts.map((account) =>
+                getTransactionHistory(account.accountNumber)
+                    .then((data) => ({
+                        accountNumber: account.accountNumber,
+                        transactions: data
+                            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                            .slice(0, 5),
+                    }))
+            )
         )
-    )
-        .then((results) => {
-        const grouped: Record<string, Transaction[]> = {};
-        results.forEach((r) => {
-            grouped[r.accountNumber] = r.transactions;
-        });
-        setTransactionsByAccount(grouped);
-        })
-        .catch(() => setError("Не удалось загрузить историю"));
-    }, [auth?.token, accounts]);
+            .then((results) => {
+                const grouped: Record<string, Transaction[]> = {};
+                results.forEach((r) => {
+                    grouped[r.accountNumber] = r.transactions;
+                });
+                setTransactionsByAccount(grouped);
+            })
+            .catch(() => setError("Не удалось загрузить историю"));
+    }, [auth?.isAuthenticated, accounts]);
 
     return (
     <div className="dashboard-page">

@@ -1,31 +1,38 @@
-import { createContext, useState, type ReactNode } from "react";
+import { createContext, useState, useEffect, type ReactNode } from "react";
+import { getSession, logout as logoutApi } from "../functions/authApi";
 
 interface AuthContextType {
-    token: string | null;
-    login: (token: string) => void;
-    logout: () => void;
+  isAuthenticated: boolean;
+  loading: boolean;
+  login: () => void;
+  logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [token, setToken] = useState<string | null>(() => { 
-        return localStorage.getItem("token");
-    });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-    function login(newToken: string) {
-        localStorage.setItem("token", newToken);
-        setToken(newToken);
-    }
+  useEffect(() => {
+    getSession()
+      .then((active) => setIsAuthenticated(active))
+      .catch(() => setIsAuthenticated(false))
+      .finally(() => setLoading(false));
+  }, []);
 
-    function logout() {
-        localStorage.removeItem("token");
-        setToken(null);
-    }
+  function login() {
+    setIsAuthenticated(true);
+  }
 
-    return (
-        <AuthContext.Provider value={{token, login, logout}}>
-            {children}
-        </AuthContext.Provider>
-    );
+  async function logout() {
+    await logoutApi();
+    setIsAuthenticated(false);
+  }
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, loading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }

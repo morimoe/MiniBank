@@ -8,6 +8,7 @@ using MiniBank.BusinessLogic.Settings;
 using MiniBank.DataAccess.Adapters;
 using MiniBank.DataAccess.Context;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +69,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
             ValidateLifetime = true
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Cookies.TryGetValue("token", out var token))
+                {
+                    context.Token = token;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 var app = builder.Build();
@@ -86,8 +99,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapControllers();
-
 app.MapWhen(ctx => !ctx.Request.Path.StartsWithSegments("/api") &&
                     !ctx.Request.Path.StartsWithSegments("/swagger"),
     spaApp =>
@@ -102,7 +113,5 @@ app.MapWhen(ctx => !ctx.Request.Path.StartsWithSegments("/api") &&
             }
         });
     });
-
-app.Run();
 
 app.Run();

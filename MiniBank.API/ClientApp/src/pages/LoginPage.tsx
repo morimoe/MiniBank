@@ -12,21 +12,17 @@ function LoginPage() {
   const [error, setError] = useState("");
   
   async function handleLogin(e: React.SyntheticEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    try {
-    const data = await loginApi({ identifier, password });
-    if (data.token) {
-      auth?.login(data.token);
-      navigate("/dashboard");
-    }
-    console.log(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось войти.");
-    }
+  try {
+    await loginApi({ identifier, password });
+    auth?.login();
+    navigate("/dashboard");
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Не удалось войти.");
   }
-
+}
   return (
   <div className="auth-page">
     <div className="auth-hero">

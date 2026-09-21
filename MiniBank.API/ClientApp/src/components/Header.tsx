@@ -6,8 +6,8 @@ function Header() {
   const auth = useContext(AuthContext);
   const navigate = useNavigate();
 
-  function handleLogout() {
-    auth?.logout();
+  async function handleLogout() {
+    await auth?.logout();
     navigate("/login");
   }
 

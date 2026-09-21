@@ -18,36 +18,36 @@ function TransferPage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    if (!auth?.token) return;
+  if (!auth?.isAuthenticated) return;
 
-    getAccounts(auth?.token)
+  getAccounts()
     .then((data) => setAccounts(data))
     .catch(() => setError("Не удалось загрузить счета"));
-  }, [auth?.token]);
+}, [auth?.isAuthenticated]);
 
-  async function handleTransfer(e: React.SyntheticEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError("");
-    setSuccess(false);
+async function handleTransfer(e: React.SyntheticEvent<HTMLFormElement>) {
+  e.preventDefault();
+  setError("");
+  setSuccess(false);
 
-    try {
-      const request: TransferRequest = {
-        fromAccountNumber,
-        toAccountNumber,
-        amount: Number(amount),
-        description,
+  try {
+    const request: TransferRequest = {
+      fromAccountNumber,
+      toAccountNumber,
+      amount: Number(amount),
+      description,
     };
 
-      await transferMoney(request, auth!.token!);
-      setSuccess(true);
-    } catch (err) {
-      if (err instanceof Error) {
-            setError(err.message);
-          } else {
-            setError("Не удалось выполнить перевод");
-          }
+    await transferMoney(request);
+    setSuccess(true);
+  } catch (err) {
+    if (err instanceof Error) {
+      setError(err.message);
+    } else {
+      setError("Не удалось выполнить перевод");
     }
   }
+}
 
   return (
   <div className="transfer-page">
