@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MiniBank.BusinessLogic.DTO;
 using MiniBank.BusinessLogic.Services;
 using MiniBank.BusinessLogic.Settings;

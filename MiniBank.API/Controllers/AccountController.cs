@@ -31,7 +31,7 @@ namespace MiniBank.API.Controllers
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var account = await _accountService.GetByIdAsync(id, currentUserId);
-            if (account is null) return NotFound();
+            if (account is null) return Forbid();
             return Ok(account);
         }
     }

@@ -43,11 +43,22 @@ namespace MiniBank.BusinessLogic.Services
             return TransferResultDto.Pass();
         }
 
-        public async Task<IEnumerable<TransactionDto>> TransactionHistoryAsync(string accountNumber, int currentUserId)
+        public enum TransactionHistoryResult
+        {
+            Success,
+            NotFound,
+            Forbidden
+        }
+
+        public async Task<(TransactionHistoryResult Result, IEnumerable<TransactionDto>? Data)> TransactionHistoryAsync(string accountNumber, int currentUserId)
         {
             var account = await _accountRepository.GetByAccountNumberAsync(accountNumber);
-            if (account == null) { return Enumerable.Empty<TransactionDto>(); }
-            if (account.UserId != currentUserId) { return Enumerable.Empty<TransactionDto>(); }
+
+            if (account == null)
+                return (TransactionHistoryResult.NotFound, null);
+
+            if (account.UserId != currentUserId)
+                return (TransactionHistoryResult.Forbidden, null);
 
             var transactions = await _transactionRepository.GetByAccountIdAsync(account.Id);
 
@@ -69,7 +80,7 @@ namespace MiniBank.BusinessLogic.Services
                 });
             }
 
-            return result;
+            return (TransactionHistoryResult.Success, result);
         }
     }
 }

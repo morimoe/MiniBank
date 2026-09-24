@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using MiniBank.BusinessLogic.DTO;
 using MiniBank.BusinessLogic.Services;
 using System.Security.Claims;
+using static MiniBank.BusinessLogic.Services.TransactionService;
 
 namespace MiniBank.API.Controllers
 {
@@ -22,8 +23,14 @@ namespace MiniBank.API.Controllers
         public async Task<ActionResult<IEnumerable<TransactionDto>>> TransactionHistory([FromQuery] string accountNumber)
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var transactions = await _transactionService.TransactionHistoryAsync(accountNumber, currentUserId);
-            return Ok(transactions);
+            var (result, transactions) = await _transactionService.TransactionHistoryAsync(accountNumber, currentUserId);
+
+            return result switch
+            {
+                TransactionHistoryResult.NotFound => NotFound(),
+                TransactionHistoryResult.Forbidden => Forbid(),
+                _ => Ok(transactions)
+            };
         }
 
         [Authorize]

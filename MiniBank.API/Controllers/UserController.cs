@@ -23,7 +23,6 @@ namespace MiniBank.API.Controllers
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var account = await _userService.GetByIdAsync(currentUserId);
-            if (account == null) { return NotFound(); }
             return account;
         }
     }
